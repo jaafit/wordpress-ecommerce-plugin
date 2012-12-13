@@ -186,6 +186,8 @@ function bitpay_callback()
 		else
 		{
 			$sessionid = $response['posData'];
+			if (!is_numeric($sessionid))
+				return;
 
 			switch($response['status'])
 			{
@@ -194,9 +196,9 @@ function bitpay_callback()
 				case 'confirmed':
 				case 'complete':
 					$sql = "UPDATE `".WPSC_TABLE_PURCHASE_LOGS.
-						"` SET `processed`= '2' WHERE `sessionid`=".$sessionid;
-					if (is_numeric($sessionid))
-						$wpdb->query($sql);
+						"` SET `processed`= '3' WHERE `sessionid`=".$sessionid;
+					$wpdb->query($sql);
+					transaction_results( $sessionid, false ); // sends email to customer
 					break;
 			}
 		}
