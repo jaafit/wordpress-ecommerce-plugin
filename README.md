@@ -28,4 +28,5 @@ WordPress e-commerce plugin
         this in the API documentation at bitpay.com).
     * Click Update below.
 
-Tested against plugin version 3.8.8.5
+Version 1.1 
+Tested against WPeC version 3.8.11

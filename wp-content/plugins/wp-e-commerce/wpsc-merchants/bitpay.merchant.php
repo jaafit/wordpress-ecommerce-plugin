@@ -1,23 +1,26 @@
 <?php
 
-$nzshpcrt_gateways[$num]['name'] = 'Bitcoins';
-$nzshpcrt_gateways[$num]['internalname'] = 'bitpay';
+$nzshpcrt_gateways[$num]['name'] = __( 'Bitpay', 'wpsc' );
+$nzshpcrt_gateways[$num]['display_name'] = __( 'Bitcoins via Bitpay.com', 'wpsc' );
+$nzshpcrt_gateways[$num]['internalname'] = 'wpsc_merchant_bitpay';
+$nzshpcrt_gateways[$num]['class_name'] = 'wpsc_merchant_bitpay';
 $nzshpcrt_gateways[$num]['function'] = 'gateway_bitpay';
 $nzshpcrt_gateways[$num]['form'] = 'form_bitpay';
 $nzshpcrt_gateways[$num]['submit_function'] = "submit_bitpay";
 
-function debuglog($contents)
-{
-	$file = 'wp-content/plugins/wp-e-commerce/wpsc-merchants/bitpay/log.txt';
-	file_put_contents($file, date('m-d H:i:s').": ", FILE_APPEND);
-	if (is_array($contents))
-		file_put_contents($file, var_export($contents, true)."\n", FILE_APPEND);		
-	else if (is_object($contents))
-		file_put_contents($file, json_encode($contents)."\n", FILE_APPEND);
-	else
-		file_put_contents($file, $contents."\n", FILE_APPEND);
-}
 
+class wpsc_merchant_bitpay extends wpsc_merchant {
+
+	var $name = '';
+
+	function __construct( $purchase_id = null, $is_receiving = false ) {
+		$this->name = __( 'Bitpay', 'wpsc' );
+		parent::__construct( $purchase_id, $is_receiving );
+	}
+
+	function submit() {
+	}
+}
 
 function form_bitpay()
 {	
@@ -155,9 +158,8 @@ function gateway_bitpay($seperator, $sessionid)
 		
 	$price = number_format($wpsc_cart->total_price,2);	
 	$invoice = bpCreateInvoice($sessionid, $price, $sessionid, $options);
-	
-	if (isset($invoice['error'])) {
-		debuglog($invoice);
+	bpLog($invoice);
+	if (isset($invoice['error'])) {		
 		// close order
 		$sql = "UPDATE `".WPSC_TABLE_PURCHASE_LOGS."` SET `processed`= '5' WHERE `sessionid`=".$sessionid;
 		$wpdb->query($sql);
@@ -178,11 +180,12 @@ function bitpay_callback()
 	{
 		global $wpdb;
 		require('wp-content/plugins/wp-e-commerce/wpsc-merchants/bitpay/bp_lib.php');
+		bpLog(file_get_contents('php://input'));
 		
 		$response = bpVerifyNotification(get_option('bitpay_apikey'));
 		
 		if (isset($response['error']))
-			debuglog($response);
+			bpLog($response);
 		else
 		{
 			$sessionid = $response['posData'];
